@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>本格スクラッチ</title>
+  <title>本格スクラッチ（自動開放機能付き）</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
@@ -38,6 +38,25 @@
       left: 0;
       border-radius: 12px;
     }
+
+    .reveal-effect {
+      animation: pop 0.6s ease-out;
+    }
+
+    @keyframes pop {
+      0% {
+        transform: scale(1);
+        filter: brightness(1);
+      }
+      50% {
+        transform: scale(1.1);
+        filter: brightness(1.5);
+      }
+      100% {
+        transform: scale(1);
+        filter: brightness(1);
+      }
+    }
   </style>
 </head>
 <body>
@@ -45,7 +64,7 @@
   <div id="message">タップして削ってみて</div>
 
   <div id="scratch-area">
-    <img id="hidden-img" src="" alt="中の画像">
+    <img id="hidden-img" src="sadako.jpg" alt="中の画像">
     <canvas id="scratch-canvas" width="300" height="400"></canvas>
   </div>
 
@@ -54,16 +73,11 @@
     const ctx = canvas.getContext('2d');
     const hiddenImg = document.getElementById('hidden-img');
     let isDrawing = false;
+    let revealed = false;
 
-    // ランダムに中の画像を選ぶ
-    const revealImages = ['sadako.jpg', 'garo.jpg', 'yunikon.jpg'];
-    const chosenImg = revealImages[Math.floor(Math.random() * revealImages.length)];
-    hiddenImg.src = chosenImg;
-
-    // 銀のスクラッチカバー画像
+    // カバー画像（？マーク銀）
     const coverImg = new Image();
     coverImg.src = 'ginhatenatop.png';
-
     coverImg.onload = () => {
       ctx.drawImage(coverImg, 0, 0, canvas.width, canvas.height);
     };
@@ -76,12 +90,44 @@
     }
 
     function scratch(x, y) {
+      if (revealed) return;
+
       ctx.globalCompositeOperation = 'destination-out';
       ctx.beginPath();
       ctx.arc(x, y, 20, 0, Math.PI * 2, false);
       ctx.fill();
+
+      // 削り面積チェック
+      checkReveal();
     }
 
+    function checkReveal() {
+      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const pixels = imgData.data;
+      let transparentPixels = 0;
+
+      for (let i = 3; i < pixels.length; i += 4) {
+        if (pixels[i] === 0) transparentPixels++;
+      }
+
+      const totalPixels = canvas.width * canvas.height;
+      const ratio = transparentPixels / totalPixels;
+
+      if (ratio > 0.4 && !revealed) {
+        revealed = true;
+        revealAll();
+      }
+    }
+
+    function revealAll() {
+      // 全削り：一瞬で透明に
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // エフェクト：画像をポップ
+      hiddenImg.classList.add('reveal-effect');
+    }
+
+    // イベント
     canvas.addEventListener('mousedown', (e) => {
       isDrawing = true;
       scratch(...Object.values(getPosition(e)));
