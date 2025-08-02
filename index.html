@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>本格スクラッチ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      text-align: center;
+      background: #f0f0f0;
+      font-family: sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+
+    #message {
+      font-size: 1.4em;
+      margin-bottom: 20px;
+    }
+
+    #scratch-area {
+      position: relative;
+      width: 300px;
+      height: 400px;
+      margin: 0 auto;
+    }
+
+    #hidden-img {
+      width: 100%;
+      height: 100%;
+      border-radius: 12px;
+    }
+
+    #scratch-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      border-radius: 12px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="message">タップして削ってみて</div>
+
+  <div id="scratch-area">
+    <img id="hidden-img" src="reveal1.jpg" alt="中の画像">
+    <canvas id="scratch-canvas" width="300" height="400"></canvas>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('scratch-canvas');
+    const ctx = canvas.getContext('2d');
+    let isDrawing = false;
+
+    const coverImg = new Image();
+    coverImg.src = 'scratch_cover.jpg';
+
+    coverImg.onload = () => {
+      ctx.drawImage(coverImg, 0, 0, canvas.width, canvas.height);
+    };
+
+    function getPosition(e) {
+      const rect = canvas.getBoundingClientRect();
+      const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+      const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+      return { x, y };
+    }
+
+    function scratch(x, y) {
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.beginPath();
+      ctx.arc(x, y, 20, 0, Math.PI * 2, false);
+      ctx.fill();
+    }
+
+    // マウス操作
+    canvas.addEventListener('mousedown', (e) => {
+      isDrawing = true;
+      const pos = getPosition(e);
+      scratch(pos.x, pos.y);
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+      if (!isDrawing) return;
+      const pos = getPosition(e);
+      scratch(pos.x, pos.y);
+    });
+
+    canvas.addEventListener('mouseup', () => isDrawing = false);
+    canvas.addEventListener('mouseleave', () => isDrawing = false);
+
+    // タッチ操作
+    canvas.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      isDrawing = true;
+      const pos = getPosition(e);
+      scratch(pos.x, pos.y);
+    }, { passive: false });
+
+    canvas.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      if (!isDrawing) return;
+      const pos = getPosition(e);
+      scratch(pos.x, pos.y);
+    }, { passive: false });
+
+    canvas.addEventListener('touchend', () => isDrawing = false);
+  </script>
+
+</body>
+</html>
