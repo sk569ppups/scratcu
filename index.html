@@ -29,6 +29,7 @@
       width: 100%;
       height: 100%;
       border-radius: 12px;
+      object-fit: cover;
     }
 
     #scratch-canvas {
@@ -44,17 +45,24 @@
   <div id="message">タップして削ってみて</div>
 
   <div id="scratch-area">
-    <img id="hidden-img" src="reveal1.jpg" alt="中の画像">
+    <img id="hidden-img" src="" alt="中の画像">
     <canvas id="scratch-canvas" width="300" height="400"></canvas>
   </div>
 
   <script>
     const canvas = document.getElementById('scratch-canvas');
     const ctx = canvas.getContext('2d');
+    const hiddenImg = document.getElementById('hidden-img');
     let isDrawing = false;
 
+    // ランダムに中の画像を選ぶ
+    const revealImages = ['sadako.jpg', 'garo.jpg', 'yunikon.jpg'];
+    const chosenImg = revealImages[Math.floor(Math.random() * revealImages.length)];
+    hiddenImg.src = chosenImg;
+
+    // 銀のスクラッチカバー画像
     const coverImg = new Image();
-    coverImg.src = 'scratch_cover.jpg';
+    coverImg.src = 'ginhatenatop.png';
 
     coverImg.onload = () => {
       ctx.drawImage(coverImg, 0, 0, canvas.width, canvas.height);
@@ -74,35 +82,29 @@
       ctx.fill();
     }
 
-    // マウス操作
     canvas.addEventListener('mousedown', (e) => {
       isDrawing = true;
-      const pos = getPosition(e);
-      scratch(pos.x, pos.y);
+      scratch(...Object.values(getPosition(e)));
     });
 
     canvas.addEventListener('mousemove', (e) => {
       if (!isDrawing) return;
-      const pos = getPosition(e);
-      scratch(pos.x, pos.y);
+      scratch(...Object.values(getPosition(e)));
     });
 
     canvas.addEventListener('mouseup', () => isDrawing = false);
     canvas.addEventListener('mouseleave', () => isDrawing = false);
 
-    // タッチ操作
     canvas.addEventListener('touchstart', (e) => {
       e.preventDefault();
       isDrawing = true;
-      const pos = getPosition(e);
-      scratch(pos.x, pos.y);
+      scratch(...Object.values(getPosition(e)));
     }, { passive: false });
 
     canvas.addEventListener('touchmove', (e) => {
       e.preventDefault();
       if (!isDrawing) return;
-      const pos = getPosition(e);
-      scratch(pos.x, pos.y);
+      scratch(...Object.values(getPosition(e)));
     }, { passive: false });
 
     canvas.addEventListener('touchend', () => isDrawing = false);
